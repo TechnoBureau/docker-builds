@@ -1,0 +1,30 @@
+name: Image Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+   inputs:
+    images:
+      description: 'Name of the Docker image to build'
+      required: true
+      default: '*'
+      type: string
+env:
+  DOCKER_BUILDKIT: 1
+  BUILDKIT_PROGRESS: plain
+  DOCKER_CLI_EXPERIMENTAL: enabled
+  DOCKER_DEFAULT_PLATFORM: linux/amd64
+  REGISTRY: 'ghcr.io'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docker Build
+        id: images
+        run: |
+          builders/${{ github.event.inputs.images }}/build.sh

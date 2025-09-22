@@ -27,4 +27,4 @@ jobs:
       - name: Docker Build
         id: images
         run: |
-          builders/${{ github.event.inputs.images }}/build.sh
+          builders/ubi/build.sh ${{ github.event.inputs.images }}

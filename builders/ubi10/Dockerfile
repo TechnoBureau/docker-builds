@@ -1,13 +1,12 @@
-ARG basebuilder=registry.access.redhat.com/ubi9/ubi
+ARG basebuilder=registry.access.redhat.com/ubi10/ubi
 ARG baseruntime=scratch
-ARG VERSION=9.x.x
+ARG VERSION=10.x.x
 
 FROM ${basebuilder} AS builder
 
-SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 COPY prebuildfs /
 
-RUN install_packages_chroot redhat-release
+RUN install_packages_chroot -r 10 redhat-release
 
 RUN echo "nonroot:x:65532:65532:NonRoot User:/home/nonroot:/bin/sh" >> /tmp/null/rootfs/etc/passwd && \
     echo "nonroot:x:65532:" >> /tmp/null/rootfs/etc/group
@@ -23,6 +22,6 @@ USER nonroot
 WORKDIR ${HOME}
 
 ENV APP_NAME="ubi" \
-    APP_VERSION="9.6"
+    APP_VERSION="10.x.x"
 
 CMD /bin/sh

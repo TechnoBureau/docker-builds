@@ -1,2 +1,0 @@
-version: "9.latest"
-TAG_STRATEGY: "version-only"

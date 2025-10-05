@@ -1,10 +1,6 @@
 name: Image Build
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
    inputs:
     image:
@@ -17,7 +13,8 @@ env:
   BUILDKIT_PROGRESS: plain
   DOCKER_CLI_EXPERIMENTAL: enabled
   DOCKER_DEFAULT_PLATFORM: linux/amd64
-  REGISTRY: 'ghcr.io'
+  GITHUB_ACTOR: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build:
     runs-on: ubuntu-latest

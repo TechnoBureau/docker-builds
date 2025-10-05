@@ -32,7 +32,7 @@ USER nonroot
 
 WORKDIR ${HOME}
 
-RUN /home/nonroot/scripts/nginx/postunpack.sh
+#RUN /home/nonroot/scripts/nginx/postunpack.sh
 
 ENV APP_VERSION="1.28.0" \
     APP_NAME="nginx" \

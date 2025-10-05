@@ -59,28 +59,29 @@ nginx_configure_port "$NGINX_DEFAULT_HTTP_PORT_NUMBER"
 # Configure default HTTPS port
 nginx_configure_port "$NGINX_DEFAULT_HTTPS_PORT_NUMBER" "${ROOT_DIR}/scripts/nginx/templates/default-https-server-block.conf"
 
-# shellcheck disable=SC1091
-
-# Load additional libraries
-. /home/nonroot/scripts/libfs.sh
-
 # Users can mount their html sites at /app
-mv "${NGINX_BASE_DIR}/html" /home/nonroot/app/
-ln -sf /home/nonroot/app/html "${NGINX_BASE_DIR}/"
+if [ -d "${NGINX_BASE_DIR}/html" ]; then
+    ensure_dir_exists "/home/nonroot/app"
+    mv "${NGINX_BASE_DIR}/html" /home/nonroot/app/
+    ln -sf /home/nonroot/app/html "${NGINX_BASE_DIR}/"
+fi
 ##Backward compatability for asserts html
 rm -rf /usr/share/nginx/html
 ln -sf /home/nonroot/app/html "/usr/share/nginx/"
 
 # Users can mount their certificates at /certs
-mv "${NGINX_CERT_PATH}" /home/nonroot/certs
-ln -sf /home/nonroot/certs "${NGINX_CERT_PATH}"
-
+if [ -d "${NGINX_CERT_PATH}" ]; then
+    ensure_dir_exists "/home/nonroot/certs"
+    mv "${NGINX_CERT_PATH}" /home/nonroot/certs
+    ln -sf /home/nonroot/certs "${NGINX_CERT_PATH}"
+fi
 
 # This file is necessary for avoiding the error
 # "unable to write random state"
 # Source: https://stackoverflow.com/questions/94445/using-openssl-what-does-unable-to-write-random-state-mean
 
-touch ~/.rnd && chmod g+rw ~/.rnd
+# Ensure the .rnd is created in the nonroot HOME
+touch "${HOME}/.rnd" && chmod g+rw "${HOME}/.rnd"
 
 #generate_cronic_conf logrotate 'logrotate /home/nonroot/logrotate.conf -s /tmp/logrotate.status > /proc/1/fd/1 2>&1' --schedule '*/30 * * * *'
 

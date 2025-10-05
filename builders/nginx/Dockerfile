@@ -17,7 +17,9 @@ ENV chroot="/tmp/null/rootfs"
 
 COPY prebuildfs ${chroot}/
 RUN mkdir -p ${chroot}/home/nonroot/
-COPY rootfs ${chroot}/home/nonroot/
+COPY rootfs/docker-entrypoint-initdb.d/ ${chroot}/home/nonroot/docker-entrypoint-initdb.d/
+COPY rootfs/scripts/ ${chroot}/home/nonroot/scripts/
+COPY rootfs/nginx/ ${chroot}/etc/nginx/
 RUN [ -d "${chroot}/home/nonroot" ] && chown -R 65532:0 ${chroot}/home/nonroot || true
 RUN [ -d "${chroot}/var/log/nginx" ] && chown -R 65532:65532 ${chroot}/var/log/nginx || true
 RUN [ -d "${chroot}/etc/nginx" ] && chown -R 65532:65532 ${chroot}/etc/nginx || true

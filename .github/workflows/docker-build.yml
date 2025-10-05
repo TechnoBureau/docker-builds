@@ -1,4 +1,5 @@
-name: ${{ 'Image Build -' || github.event.inputs.image  }}
+name: Image Build
+run-name: Image Build - ${{ github.event.inputs.image }}
 
 on:
   workflow_dispatch:

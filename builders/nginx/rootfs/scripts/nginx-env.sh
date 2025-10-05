@@ -5,7 +5,7 @@
 # Environment configuration for nginx
 
 # The values for all environment variables will be set in the below order of precedence
-# 1. Custom environment variables defined below after IBM defaults
+# 1. Custom environment variables defined below after product defaults
 # 2. Constants defined in this file (environment variables with no default), i.e. ROOT_DIR
 # 3. Environment variables overridden via external files using *_FILE variables (see below)
 # 4. Environment variables set externally (i.e. current Bash context/Dockerfile/userdata)

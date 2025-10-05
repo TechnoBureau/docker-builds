@@ -18,9 +18,9 @@ ENV chroot="/tmp/null/rootfs"
 COPY prebuildfs ${chroot}/
 RUN mkdir -p ${chroot}/home/nonroot/
 COPY rootfs ${chroot}/home/nonroot/
-RUN chown -R 65532:65532 ${chroot}/home/nonroot
-RUN chown -R 65532:65532 ${chroot}/var/log/nginx
-RUN chown -R 65532:65532 ${chroot}/etc/nginx
+RUN [ -d "${chroot}/home/nonroot" ] && chown -R 65532:0 ${chroot}/home/nonroot || true
+RUN [ -d "${chroot}/var/log/nginx" ] && chown -R 65532:65532 ${chroot}/var/log/nginx || true
+RUN [ -d "${chroot}/etc/nginx" ] && chown -R 65532:65532 ${chroot}/etc/nginx || true
 
 RUN ln -sf /dev/stdout "${chroot}/var/log/nginx/access.log"
 RUN ln -sf /dev/stderr "${chroot}/var/log/nginx/error.log"

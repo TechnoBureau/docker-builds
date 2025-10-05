@@ -25,36 +25,16 @@
 # Ensure NGINX is stopped when this script ends
 trap "nginx_stop" EXIT
 
-# Ensure NGINX daemon user exists when running as 'root'
-am_i_root && ensure_user_exists "$NGINX_DAEMON_USER" --group "$NGINX_DAEMON_GROUP"
 
-# Ensure non-root user has write permissions on a set of directories - Runtime Folder creation
-for dir in "$NGINX_VOLUME_DIR" "$NGINX_CONF_DIR" "$NGINX_INITSCRIPTS_DIR" "$NGINX_SERVER_BLOCKS_DIR" "$NGINX_LOGS_DIR" "$NGINX_TMP_DIR" "${NGINX_CONF_BASE_PATH}" "${NGINX_CERT_PATH}" "${NGINX_TEMPLATE_PATH}"; do
-    #echo "checking .. $dir folder existence"
-    ensure_dir_exists "$dir"
-    #chmod -R g+rwX "$dir"
-done
-
-# Configure HTTPS sample block using generated SSL certs
-nginx_generate_sample_certs
 
 # Run init scripts
 custom_init_scripts
 
-# Fix logging issue when running as root
-! am_i_root || chmod o+w "$(readlink /dev/stdout)" "$(readlink /dev/stderr)"
-
-# Configure HTTPS port number
-if [[ -f "${NGINX_CONF_DIR}/certs/server.crt" ]] && [[ -n "${NGINX_HTTPS_PORT_NUMBER:-}" ]] && [[ ! -f "${NGINX_SERVER_BLOCKS_DIR}/default-https-server-block.conf" ]] && is_file_writable "${NGINX_SERVER_BLOCKS_DIR}/default-https-server-block.conf"; then
-    cp "${ROOT_DIR}/scripts/nginx/templates/default-https-server-block.conf" "${NGINX_SERVER_BLOCKS_DIR}/default-https-server-block.conf"
-fi
 
 if [[ ! -f "${NGINX_CONF_DIR}/mime.types" ]] && [[ -f "${NGINX_ROOT_DIR}/mime.types" ]]; then
  ln -s "${NGINX_ROOT_DIR}/mime.types" "${NGINX_CONF_DIR}/mime.types"
 fi
 
-
-#add_log_archive_softlinks
 
 ## If LOG_OUTPUT is unset or other than file then it will be redirected to stdout, else file level logging.
 if [[ -z "${LOG_OUTPUT}" || "${LOG_OUTPUT}" != "file" ]]; then
@@ -63,15 +43,6 @@ if [[ -z "${LOG_OUTPUT}" || "${LOG_OUTPUT}" != "file" ]]; then
 else
   touch "${NGINX_LOGS_DIR}/nginx.log"
   touch "${NGINX_LOGS_DIR}/error.log"
-fi
-
-## Enabling Debug logging for the error_log based on Environment variable.
-if [[ "${LOG_LEVEL:-}" == "debug" || -n "${LOG_LEVEL:-}" ]]; then
-  # Find all .conf files under NGINX_CONF_DIR
-  find "${NGINX_CONF_DIR}" -type f -name "*.conf" | while read conf_file; do
-    # Use sed to find and replace 'error_log ... ;' with 'error_log ... debug;'
-    sed -i 's|error_log \([^;]*\);|error_log \1 debug;|' "$conf_file"
-  done
 fi
 
 

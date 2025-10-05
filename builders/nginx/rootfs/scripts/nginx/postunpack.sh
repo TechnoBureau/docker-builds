@@ -66,8 +66,8 @@ if [ -d "${NGINX_BASE_DIR}/html" ]; then
     ln -sf /home/nonroot/app/html "${NGINX_BASE_DIR}/"
 fi
 ##Backward compatability for asserts html
-rm -rf /usr/share/nginx/html
-ln -sf /home/nonroot/app/html "/usr/share/nginx/"
+#rm -rf /usr/share/nginx/html
+#ln -sf /home/nonroot/app/html "/usr/share/nginx/"
 
 # Users can mount their certificates at /certs
 if [ -d "${NGINX_CERT_PATH}" ]; then

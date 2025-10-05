@@ -1,0 +1,43 @@
+ARG basebuilder=registry.access.redhat.com/ubi9/ubi
+ARG baseruntime=scratch
+ARG VERSION=9.x.x
+
+FROM ${basebuilder} AS builder
+
+COPY prebuildfs /
+
+RUN curl -L https://download.opensuse.org/repositories/home:/ganapathi/UBI9/home:ganapathi.repo -o /etc/yum.repos.d/technobureau.repo
+
+RUN install_packages_chroot nginx-all-modules nginx geolite2-country openssl-fips-provider
+
+RUN echo "nonroot:x:65532:65532:NonRoot User:/home/nonroot:/bin/sh" >> /tmp/null/rootfs/etc/passwd && \
+    echo "nonroot:x:65532:" >> /tmp/null/rootfs/etc/group
+
+ENV chroot="/tmp/null/rootfs"
+
+COPY prebuildfs ${chroot}/
+RUN ln -sf /dev/stdout "${chroot}/var/log/nginx/access.log"
+RUN ln -sf /dev/stderr "${chroot}/var/log/nginx/error.log"
+
+FROM ${baseruntime} AS runtime
+
+ENV HOME=/home/nonroot
+
+COPY --from=builder /tmp/null/rootfs/ /
+
+USER nonroot
+
+WORKDIR ${HOME}
+
+RUN /home/nonroot/scripts/nginx/postunpack.sh
+
+ENV APP_VERSION="1.28.0" \
+    APP_NAME="nginx" \
+    NGINX_HTTPS_PORT_NUMBER="" \
+    NGINX_HTTP_PORT_NUMBER="8080" \
+    PATH="/home/nonroot/common/bin:/home/nonroot/nginx/sbin:/home/nonroot/scripts/nginx/:$PATH"
+
+STOPSIGNAL SIGQUIT
+
+ENTRYPOINT [ "entrypoint.sh" ]
+CMD [ "run.sh" ]

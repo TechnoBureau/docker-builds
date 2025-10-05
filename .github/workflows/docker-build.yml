@@ -6,7 +6,7 @@ on:
     image:
       description: 'Name of the Docker image to build'
       required: true
-      default: ''
+      default: 'snooze'
       type: string
 env:
   DOCKER_BUILDKIT: 1

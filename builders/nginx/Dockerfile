@@ -16,6 +16,9 @@ RUN echo "nonroot:x:65532:65532:NonRoot User:/home/nonroot:/bin/sh" >> /tmp/null
 ENV chroot="/tmp/null/rootfs"
 
 COPY prebuildfs ${chroot}/
+RUN mkdir -p ${chroot}/home/nonroot/
+COPY rootfs ${chroot}/home/nonroot/
+
 RUN ln -sf /dev/stdout "${chroot}/var/log/nginx/access.log"
 RUN ln -sf /dev/stderr "${chroot}/var/log/nginx/error.log"
 

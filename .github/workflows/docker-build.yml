@@ -15,6 +15,7 @@ env:
   DOCKER_DEFAULT_PLATFORM: linux/amd64
   GITHUB_ACTOR: ${{ github.actor }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  PLATFORM: linux/amd64,linux/arm64
 jobs:
   build:
     runs-on: ubuntu-latest

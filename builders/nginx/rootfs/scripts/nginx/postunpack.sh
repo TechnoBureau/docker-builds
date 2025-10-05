@@ -7,7 +7,7 @@
 set -o errexit
 #set -o nounset
 set -o pipefail
-#set -o xtrace # Uncomment this line for debugging purposes
+set -o xtrace # Uncomment this line for debugging purposes
 
 # Load libraries
 . /home/nonroot/scripts/libnginx.sh

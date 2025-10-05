@@ -7,10 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
    inputs:
-    images:
+    image:
       description: 'Name of the Docker image to build'
       required: true
-      default: '*'
+      default: ''
       type: string
 env:
   DOCKER_BUILDKIT: 1
@@ -29,4 +29,4 @@ jobs:
       - name: Docker Build
         id: images
         run: |
-          builders/snooze/build.sh
+          builders/${{ github.event.inputs.image }}/build.sh

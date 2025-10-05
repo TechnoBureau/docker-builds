@@ -7,8 +7,8 @@ FROM cgr.dev/chainguard/wolfi-base AS build
 RUN apk add --no-cache \
     cmake \
     make \
-    gcc
-#    musl-dev
+    gcc \
+    glibc-dev
 
 WORKDIR /app
 

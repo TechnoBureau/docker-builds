@@ -13,7 +13,7 @@ RUN echo "nonroot:x:65532:65532:NonRoot User:/home/nonroot:/bin/sh" >> /tmp/null
 
 FROM ${baseruntime} AS runtime
 
-ENV HOME /home/nonroot
+ENV HOME=/home/nonroot
 
 COPY --from=builder /tmp/null/rootfs/ /
 
@@ -24,4 +24,4 @@ WORKDIR ${HOME}
 ENV APP_NAME="ubi" \
     APP_VERSION="10.x.x"
 
-CMD /bin/sh
+CMD ["/bin/sh"]

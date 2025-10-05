@@ -39,7 +39,7 @@ rm -rf "${ROOT_DIR}/certs" "${ROOT_DIR}/server_blocks"
 mkdir -p "${NGINX_BASE_DIR}/html"
 
 # Ensure non-root user has write permissions on a set of directories - Build Time Folder Creation
-for dir in "$NGINX_VOLUME_DIR" "$NGINX_CONF_DIR" "$NGINX_INITSCRIPTS_DIR" "$NGINX_SERVER_BLOCKS_DIR" "${NGINX_CONF_DIR}/product" "$NGINX_LOGS_DIR" "$NGINX_TMP_DIR" "${NGINX_CONF_BASE_PATH}" "${NGINX_SECRET_PATH}" "${NGINX_CERT_PATH}" "${NGINX_TEMPLATE_PATH}"; do
+for dir in "$NGINX_VOLUME_DIR" "$NGINX_CONF_DIR" "$NGINX_INITSCRIPTS_DIR" "$NGINX_SERVER_BLOCKS_DIR" "${NGINX_CONF_DIR}/product" "$NGINX_LOGS_DIR" "$NGINX_TMP_DIR" "${NGINX_CONF_BASE_PATH}" "${NGINX_CERT_PATH}" "${NGINX_TEMPLATE_PATH}"; do
     #echo "checking .. $dir folder existence"
     ensure_dir_exists "$dir"
     #chmod -R g+rwX "$dir"

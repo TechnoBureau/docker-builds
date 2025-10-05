@@ -29,7 +29,7 @@ trap "nginx_stop" EXIT
 am_i_root && ensure_user_exists "$NGINX_DAEMON_USER" --group "$NGINX_DAEMON_GROUP"
 
 # Ensure non-root user has write permissions on a set of directories - Runtime Folder creation
-for dir in "$NGINX_VOLUME_DIR" "$NGINX_CONF_DIR" "$NGINX_INITSCRIPTS_DIR" "$NGINX_SERVER_BLOCKS_DIR" "$NGINX_LOGS_DIR" "$NGINX_TMP_DIR" "${NGINX_CONF_BASE_PATH}" "${NGINX_SECRET_PATH}" "${NGINX_CERT_PATH}" "${NGINX_TEMPLATE_PATH}"; do
+for dir in "$NGINX_VOLUME_DIR" "$NGINX_CONF_DIR" "$NGINX_INITSCRIPTS_DIR" "$NGINX_SERVER_BLOCKS_DIR" "$NGINX_LOGS_DIR" "$NGINX_TMP_DIR" "${NGINX_CONF_BASE_PATH}" "${NGINX_CERT_PATH}" "${NGINX_TEMPLATE_PATH}"; do
     #echo "checking .. $dir folder existence"
     ensure_dir_exists "$dir"
     #chmod -R g+rwX "$dir"
@@ -52,36 +52,6 @@ fi
 if [[ ! -f "${NGINX_CONF_DIR}/mime.types" ]] && [[ -f "${NGINX_ROOT_DIR}/mime.types" ]]; then
  ln -s "${NGINX_ROOT_DIR}/mime.types" "${NGINX_CONF_DIR}/mime.types"
 fi
-
-## logs backup intiialization
-function add_log_archive_softlinks {
-  DATE=$(date '+%Y-%m-%d-%H-%M-%S')
-
-  IFS="," read -a products_list <<< "${PRODUCT_NAME}"
-
-  for pindex in "${!products_list[@]}"
-  do
-    if test -L "${NGINX_LOGS_DIR}/${products_list[${pindex}]}"
-    then
-      info "${NGINX_LOGS_DIR}/${products_list[${pindex}]} is a soft link. Skipping..."
-    else
-      info "Adding common logging softlinks for ${NGINX_LOGS_DIR}/${products_list[${pindex}]}..."
-
-      rm -rf "${NGINX_LOGS_DIR}/${products_list[${pindex}]}"
-      # if [ ! -d "${NGINX_LOGS_DIR}" ]; then
-      #   mkdir -p "${NGINX_LOGS_DIR}"
-      # fi
-      mkdir -p "/opt/softwareag/logs/${products_list[${pindex}]}/${TENANT_NAME}/${NAMESPACE_NAME}/${COMPONENT}/${DATE}/${HOSTNAME}/logs"
-      ln -s "/opt/softwareag/logs/${products_list[${pindex}]}/${TENANT_NAME}/${NAMESPACE_NAME}/${COMPONENT}/${DATE}/${HOSTNAME}/logs" "${NGINX_LOGS_DIR}/${products_list[${pindex}]}"
-
-      chmod -R 777 "/opt/softwareag/logs/${products_list[${pindex}]}"
-      touch "${NGINX_LOGS_DIR}/${products_list[${pindex}]}/nginx.log"
-      touch "${NGINX_LOGS_DIR}/${products_list[${pindex}]}/error.log"
-      chmod 777 "${NGINX_LOGS_DIR}/${products_list[${pindex}]}/nginx.log"
-      chmod 777 "${NGINX_LOGS_DIR}/${products_list[${pindex}]}/error.log"
-    fi
-  done
-}
 
 
 #add_log_archive_softlinks

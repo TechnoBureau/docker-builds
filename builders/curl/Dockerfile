@@ -6,7 +6,7 @@ FROM ${basebuilder} AS builder
 
 COPY prebuildfs /
 
-RUN install_packages_chroot -r 10 curl-minimal
+RUN install_packages_chroot -r 10 curl-minimal curl libcurl
 
 RUN echo "nonroot:x:65532:65532:NonRoot User:/home/nonroot:/bin/sh" >> /tmp/null/rootfs/etc/passwd && \
     echo "nonroot:x:65532:" >> /tmp/null/rootfs/etc/group

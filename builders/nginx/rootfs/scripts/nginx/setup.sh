@@ -19,30 +19,24 @@
 # Load NGINX environment variables
 . /home/nonroot/scripts/nginx-env.sh
 
-# Ensure NGINX environment variables settings are valid
-# nginx_validate
 
 # Ensure NGINX is stopped when this script ends
 trap "nginx_stop" EXIT
 
-
+# Configure HTTPS sample block using generated SSL certs
+nginx_generate_sample_certs
 
 # Run init scripts
 custom_init_scripts
 
 
-if [[ ! -f "${NGINX_CONF_DIR}/mime.types" ]] && [[ -f "${NGINX_ROOT_DIR}/mime.types" ]]; then
- ln -s "${NGINX_ROOT_DIR}/mime.types" "${NGINX_CONF_DIR}/mime.types"
-fi
-
-
 ## If LOG_OUTPUT is unset or other than file then it will be redirected to stdout, else file level logging.
 if [[ -z "${LOG_OUTPUT}" || "${LOG_OUTPUT}" != "file" ]]; then
-  ln -sf "/proc/1/fd/1" "${NGINX_LOGS_DIR}/nginx.log"
-  ln -sf "/proc/1/fd/2" "${NGINX_LOGS_DIR}/error.log"
+  ln -sf "/proc/1/fd/1" "/var/log/nginx/nginx.log"
+  ln -sf "/proc/1/fd/2" "/var/log/nginx/error.log"
 else
-  touch "${NGINX_LOGS_DIR}/nginx.log"
-  touch "${NGINX_LOGS_DIR}/error.log"
+  touch "/var/log/nginx/nginx.log"
+  touch "/var/log/nginx/error.log"
 fi
 
 

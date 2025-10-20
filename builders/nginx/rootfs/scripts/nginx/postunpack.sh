@@ -7,7 +7,7 @@
 set -o errexit
 #set -o nounset
 set -o pipefail
-set -o xtrace # Uncomment this line for debugging purposes
+#set -o xtrace # Uncomment this line for debugging purposes
 
 # Load libraries
 . /home/nonroot/scripts/libnginx.sh
@@ -38,9 +38,6 @@ nginx_patch_httpoxy_vulnerability() {
 # Unset HTTP_PROXY header to protect vs HTTPPOXY vulnerability
 nginx_patch_httpoxy_vulnerability
 
-# Configure default HTTP port
-nginx_configure_port "$NGINX_DEFAULT_HTTP_PORT_NUMBER"
-
 
 # This file is necessary for avoiding the error
 # "unable to write random state"
@@ -49,5 +46,4 @@ nginx_configure_port "$NGINX_DEFAULT_HTTP_PORT_NUMBER"
 # Ensure the .rnd is created in the nonroot HOME
 touch "${HOME}/.rnd" && chmod g+rw "${HOME}/.rnd"
 
-#generate_cronic_conf logrotate 'logrotate /home/nonroot/logrotate.conf -s /tmp/logrotate.status > /proc/1/fd/1 2>&1' --schedule '*/30 * * * *'
 

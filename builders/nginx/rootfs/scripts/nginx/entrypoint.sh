@@ -21,7 +21,7 @@
 
 #print_welcome_page
 
-if [[ "$1" = "run.sh" || "$1" = "run-ctlr.sh" ]]; then
+if [[ "$1" = "run.sh" ]]; then
     info "** Starting NGINX setup **"
     /home/nonroot/scripts/nginx/setup.sh
     info "** NGINX setup finished! **"

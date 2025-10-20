@@ -1,6 +1,4 @@
 #!/bin/bash
-# Copyright VMware, Inc.
-# SPDX-License-Identifier: APACHE-2.0
 
 # shellcheck disable=SC1091
 
@@ -11,10 +9,6 @@ set -o pipefail
 
 # Load libraries
 . /home/nonroot/scripts/liblog.sh
-. /home/nonroot/scripts/libnginx.sh
-
-# Load NGINX environment variables
-. /home/nonroot/scripts/nginx-env.sh
 
 info "** Starting NGINX **"
-exec "${NGINX_SBIN_DIR}/nginx" -c "$NGINX_CONF_FILE" -e "$NGINX_LOGS_DIR/error.log" -g " daemon off;"
+exec nginx -g " daemon off;"

@@ -46,6 +46,4 @@ nginx_ensure_includes_exist
 ## Configure Nginx Module which needs to be running
 configure_nginx_module
 
-# Initialize NGINX
-nginx_initialize
 

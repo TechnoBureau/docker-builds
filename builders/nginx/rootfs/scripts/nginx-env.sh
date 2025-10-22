@@ -11,7 +11,7 @@ export DEBUG="${DEBUG:-false}"
 export NGINX_CONF_DIR="/etc/nginx"
 export NGINX_SERVER_BLOCKS_DIR="${NGINX_CONF_DIR}/server_blocks"
 export NGINX_CONF_FILE="${NGINX_CONF_DIR}/nginx.conf"
-
+export NGINX_PID_FILE="/tmp/nginx.pid"
 # Custom environment variables may be defined below
 export MODULES_CONF_FOLDER="${NGINX_CONF_DIR}/modules"
 export ENABLE_MODULES="${ENABLE_MODULES:-http_headers_more_filter,http_vhost_traffic_status,http_geoip2,http_sticky,http_opentracing,http_ot}"

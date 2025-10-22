@@ -60,7 +60,7 @@ is_nginx_not_running() {
 nginx_stop() {
     ! is_nginx_running && return
     info "Stopping NGINX"
-    stop_service_using_pid "$NGINX_PID_FILE"
+    stop_service_using_pid "$NGINX_PID_FILE" "QUIT"
 }
 
 ########################

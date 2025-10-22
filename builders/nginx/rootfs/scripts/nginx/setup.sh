@@ -21,7 +21,7 @@
 
 
 # Ensure NGINX is stopped when this script ends
-trap "nginx_stop" EXIT
+trap "nginx_stop" SIGINT SIGTERM SIGQUIT SIGHUP EXIT
 
 # Configure HTTPS sample block using generated SSL certs
 nginx_generate_sample_certs

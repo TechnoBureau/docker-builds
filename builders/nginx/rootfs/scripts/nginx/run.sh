@@ -11,4 +11,5 @@ set -o pipefail
 . /home/nonroot/scripts/liblog.sh
 
 info "** Starting NGINX **"
-exec nginx -g " daemon off;"
+exec nginx -g " daemon off;" &
+wait $!

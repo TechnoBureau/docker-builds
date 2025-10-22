@@ -245,15 +245,19 @@ nginx_generate_sample_certs() {
             SSL_SUBJ="/CN=example.com"
             SSL_EXT="subjectAltName=DNS:example.com,DNS:www.example.com,IP:127.0.0.1"
             rm -f "$SSL_KEY_FILE" "$SSL_CERT_FILE"
-            openssl genrsa -out "$SSL_KEY_FILE" 4096
-            # OpenSSL version 1.0.x does not use the same parameters as OpenSSL >= 1.1.x
-            if [[ "$(openssl version | grep -oE "[0-9]+\.[0-9]+")" == "1.0" ]]; then
-                openssl req -new -sha256 -out "$SSL_CSR_FILE" -key "$SSL_KEY_FILE" -nodes -subj "$SSL_SUBJ"
+            if command -v "openssl" >/dev/null; then
+                openssl genrsa -out "$SSL_KEY_FILE" 4096
+                # OpenSSL version 1.0.x does not use the same parameters as OpenSSL >= 1.1.x
+                if [[ "$(openssl version | grep -oE "[0-9]+\.[0-9]+")" == "1.0" ]]; then
+                    openssl req -new -sha256 -out "$SSL_CSR_FILE" -key "$SSL_KEY_FILE" -nodes -subj "$SSL_SUBJ"
+                else
+                    openssl req -new -sha256 -out "$SSL_CSR_FILE" -key "$SSL_KEY_FILE" -nodes -subj "$SSL_SUBJ" -addext "$SSL_EXT"
+                fi
+                openssl x509 -req -sha256 -in "$SSL_CSR_FILE" -signkey "$SSL_KEY_FILE" -out "$SSL_CERT_FILE" -days 1825 -extfile <(echo -n "$SSL_EXT")
+                rm -f "$SSL_CSR_FILE"
             else
-                openssl req -new -sha256 -out "$SSL_CSR_FILE" -key "$SSL_KEY_FILE" -nodes -subj "$SSL_SUBJ" -addext "$SSL_EXT"
+                warn "openssl not found, skipping sample HTTPS certificates generation"
             fi
-            openssl x509 -req -sha256 -in "$SSL_CSR_FILE" -signkey "$SSL_KEY_FILE" -out "$SSL_CERT_FILE" -days 1825 -extfile <(echo -n "$SSL_EXT")
-            rm -f "$SSL_CSR_FILE"
         else
             warn "The certificates directories '${certs_dir}' does not exist or is not writable, skipping sample HTTPS certificates generation"
         fi
@@ -466,7 +470,12 @@ function process_template_files {
 #########################
 function configure_nginx_module {
   local enable_module=${1:-"$ENABLE_MODULES"}
-  modules=$(grep -oP 'load_module\s+"\K[^"]+' "$MODULES_CONF_FOLDER"/*.conf | sed 's/\.so$//' | sed 's/^ngx_//' | awk -F/ '{print $NF}' | tr '\n' ',' | sed 's/,$//')
+  if ! command -v grep >/dev/null || ! command -v sed >/dev/null || ! command -v awk >/dev/null || ! command -v tr >/dev/null; then
+    warn "Required tools (grep, sed, awk, tr) not found, skipping NGINX module configuration."
+    return 1
+  fi
+  local modules
+  modules="$(grep -oP 'load_module\s+"\K[^"]+' "$MODULES_CONF_FOLDER"/*.conf | sed 's/\.so$//' | sed 's/^ngx_//' | awk -F/ '{print $NF}' | tr '\n' ',' | sed 's/,$//')"
 
   # Disable all modules and enable required modules
   IFS=',' read -ra all_modules <<< "$modules"

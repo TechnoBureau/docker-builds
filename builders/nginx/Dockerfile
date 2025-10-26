@@ -26,8 +26,8 @@ RUN [ -d "${chroot}/home/nonroot" ] && chown -R 65532:0 ${chroot}/home/nonroot |
 RUN [ -d "${chroot}/var/log/nginx" ] && chown -R 65532:65532 ${chroot}/var/log/nginx || true
 RUN [ -d "${chroot}/etc/nginx" ] && chown -R 65532:65532 ${chroot}/etc/nginx || true
 
-RUN ln -sf /dev/stdout "${chroot}/var/log/nginx/access.log"
-RUN ln -sf /dev/stderr "${chroot}/var/log/nginx/error.log"
+RUN ln -sf /proc/1/fd/1 "${chroot}/var/log/nginx/access.log"
+RUN ln -sf /proc/1/fd/2 "${chroot}/var/log/nginx/error.log"
 
 FROM ${baseruntime} AS runtime
 

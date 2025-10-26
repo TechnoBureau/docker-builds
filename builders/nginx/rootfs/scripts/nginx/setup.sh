@@ -27,16 +27,6 @@ nginx_generate_sample_certs
 custom_init_scripts
 
 
-## If LOG_OUTPUT is unset or other than file then it will be redirected to stdout, else file level logging.
-if [[ -z "${LOG_OUTPUT}" || "${LOG_OUTPUT}" != "file" ]]; then
-  ln -sf "/proc/1/fd/1" "/var/log/nginx/nginx.log"
-  ln -sf "/proc/1/fd/2" "/var/log/nginx/error.log"
-else
-  touch "/var/log/nginx/nginx.log"
-  touch "/var/log/nginx/error.log"
-fi
-
-
 ## Check for include directives in nginx.conf and create dummy files if they don't exist
 nginx_ensure_includes_exist
 

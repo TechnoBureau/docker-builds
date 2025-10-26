@@ -1,3 +1,5 @@
 #!/bin/sh
 #
-echo "This is a dummy initialization script."
+. /home/nonroot/scripts/liblog.sh
+
+info "This is a dummy initialization script."

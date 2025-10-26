@@ -1,7 +1,4 @@
-#!/bin/bash
-# Copyright VMware, Inc.
-# SPDX-License-Identifier: APACHE-2.0
-
+#!/bin/sh
 # shellcheck disable=SC1091
 
 set -o errexit

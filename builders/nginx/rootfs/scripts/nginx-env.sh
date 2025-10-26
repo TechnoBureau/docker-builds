@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Environment configuration for nginx
 # Load logging library
 # shellcheck disable=SC1090,SC1091

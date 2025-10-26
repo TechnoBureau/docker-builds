@@ -13,21 +13,38 @@ jobs:
     steps:
       - name: Fetch all container packages
         id: packages
-        run: |
-          # Fetch packages JSON
-          resp=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/orgs/${ORG}/packages?package_type=container")
-          # If response is a JSON array, extract package names; otherwise log and set empty
-          if echo "$resp" | jq -e 'type == "array"' > /dev/null 2>&1; then
-            packages=$(echo "$resp" | jq -r '.[].name' | tr '\n' ' ')
-          else
-            echo "Unexpected response from API: $(echo "$resp" | jq -c . 2>/dev/null || echo "$resp")"
-            packages=""
-          fi
-          # Use GITHUB_OUTPUT (recommended) instead of deprecated set-output
-          echo "packages=$packages" >> "$GITHUB_OUTPUT"
-        shell: /usr/bin/bash -e {0}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const org = process.env.ORG;
+            const per_page = 100;
+            let page = 1;
+            const names = [];
+            while (true) {
+              const res = await github.rest.packages.listPackagesForOrganization({
+                org,
+                package_type: 'container',
+                per_page,
+                page
+              });
+              // Log and stop on unexpected responses
+              if (!res || typeof res.status === 'number' && res.status >= 400) {
+                console.log('Failed to list packages or received error from API:', res && res.status, res && res.data);
+                break;
+              }
+              const data = res.data || [];
+              for (const p of data) {
+                if (p && p.name) names.push(p.name);
+              }
+              if (data.length < per_page) break;
+              page++;
+            }
+            const packages = names.join(' ');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `packages=${packages}\n`);
+        env:
+          ORG: technobureau
 
       - name: Delete old versions for each package
         uses: actions/github-script@v7

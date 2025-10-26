@@ -14,25 +14,40 @@ jobs:
       - name: Fetch all container packages
         id: packages
         run: |
-          packages=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                          -H "Accept: application/vnd.github+json" \
-                          https://api.github.com/orgs/${ORG}/packages?package_type=container \
-                    | jq -r '.[].name')
-          echo "::set-output name=packages::$packages"
+          # Fetch packages JSON
+          resp=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/orgs/${ORG}/packages?package_type=container")
+          # If response is a JSON array, extract package names; otherwise log and set empty
+          if echo "$resp" | jq -e 'type == "array"' > /dev/null 2>&1; then
+            packages=$(echo "$resp" | jq -r '.[].name' | tr '\n' ' ')
+          else
+            echo "Unexpected response from API: $(echo "$resp" | jq -c . 2>/dev/null || echo "$resp")"
+            packages=""
+          fi
+          # Use GITHUB_OUTPUT (recommended) instead of deprecated set-output
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
+        shell: /usr/bin/bash -e {0}
 
       - name: Delete old versions for each package
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pkgs = `${{ steps.packages.outputs.packages }}`.split(" ");
-            for (const pkg of pkgs) {
-              console.log(`Cleaning package: ${pkg}`);
-              await github.rest.actions.createWorkflowDispatch({
-                owner: process.env.ORG,
-                repo: context.repo.repo,
-                workflow_id: 'cleanup-package.yml',
-                ref: context.ref,
-                inputs: { pkg }
-              });
+            const raw = `${{ steps.packages.outputs.packages }}` || "";
+            const pkgs = raw.trim() ? raw.trim().split(/\s+/) : [];
+            if (pkgs.length === 0) {
+              console.log("No packages found, nothing to dispatch.");
+            } else {
+              for (const pkg of pkgs) {
+                if (!pkg) continue;
+                console.log(`Cleaning package: ${pkg}`);
+                await github.rest.actions.createWorkflowDispatch({
+                  owner: process.env.ORG,
+                  repo: context.repo.repo,
+                  workflow_id: 'cleanup-package.yml',
+                  ref: context.ref,
+                  inputs: { pkg }
+                });
+              }
             }

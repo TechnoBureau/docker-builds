@@ -8,7 +8,7 @@ COPY prebuildfs /
 
 RUN curl -L https://download.opensuse.org/repositories/home:/ganapathi/UBI9/home:ganapathi.repo -o /etc/yum.repos.d/technobureau.repo
 
-ENV DISALLOW_PACKAGES="coreutils,grep,sed,gawk,findutils,diffutils,util-linux-core"
+ENV DISALLOW_PACKAGES="grep,sed,gawk,findutils,diffutils,util-linux-core"
 
 RUN install_packages_chroot nginx-all-modules nginx geolite2-country openssl-fips-provider
 

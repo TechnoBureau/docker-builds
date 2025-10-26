@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Fetch all container packages
         id: packages
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -47,7 +47,7 @@ jobs:
           ORG: technobureau
 
       - name: Delete old versions for each package
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

@@ -228,6 +228,10 @@ absolute_redirect off;"
 #   None
 #########################
 nginx_generate_sample_certs() {
+  if ! command -v openssl >/dev/null; then
+    warn "openssl not found, skipping NGINX Sample Certificate generation."
+    return 0
+  fi
     local certs_dir="${NGINX_CERT_PATH}"
 
     if ! is_boolean_yes "$NGINX_SKIP_SAMPLE_CERTS" && [[ ! -f "${certs_dir}/$NGINX_DEFAULT_TLS_NAME.crt" ]]; then
@@ -308,6 +312,10 @@ function nginx_ensure_includes_exist {
 #   None
 #########################
 function process_static_includes {
+  if ! command -v grep >/dev/null || ! command -v sed >/dev/null || ! command -v awk >/dev/null || ! command -v tr >/dev/null; then
+    warn "Required tools (grep, sed, awk, tr) not found, skipping NGINX process_static_includes configuration."
+    return 0
+  fi
   # Parse nginx.conf for static include directives (no wildcards)
   local static_include_files
   static_include_files=$(grep -o 'include\s\+[^*;]*;' "${NGINX_CONF_FILE}" | sed 's/include\s\+//g' | sed 's/;//g' | tr -d '"' | tr -d "'")
@@ -349,6 +357,10 @@ function process_static_includes {
 #   None
 #########################
 function process_wildcard_includes {
+  if ! command -v grep >/dev/null || ! command -v sed >/dev/null || ! command -v awk >/dev/null || ! command -v tr >/dev/null; then
+    warn "Required tools (grep, sed, awk, tr) not found, skipping NGINX process_wildcard_includes configuration."
+    return 0
+  fi
   # Parse nginx.conf for wildcard include directives
   local wildcard_include_patterns
   wildcard_include_patterns=$(grep -o 'include\s\+[^;]*\*[^;]*;' "${NGINX_CONF_FILE}" | sed 's/include\s\+//g' | sed 's/;//g' | tr -d '"' | tr -d "'")
@@ -470,7 +482,7 @@ function configure_nginx_module {
   local enable_module=${1:-"$ENABLE_MODULES"}
   if ! command -v grep >/dev/null || ! command -v sed >/dev/null || ! command -v awk >/dev/null || ! command -v tr >/dev/null; then
     warn "Required tools (grep, sed, awk, tr) not found, skipping NGINX module configuration."
-    return 1
+    return 0
   fi
   local modules
   modules="$(grep -oP 'load_module\s+"\K[^"]+' "$MODULES_CONF_FOLDER"/*.conf | sed 's/\.so$//' | sed 's/^ngx_//' | awk -F/ '{print $NF}' | tr '\n' ',' | sed 's/,$//')"

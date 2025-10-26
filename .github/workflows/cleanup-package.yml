@@ -1,9 +1,11 @@
 name: Clean up old Docker images
 
 on:
-  schedule:
-    - cron: "0 3 * * 0" # Every Sunday at 3 AM UTC
   workflow_dispatch:
+    inputs:
+      pkg:
+        description: 'Package name'
+        required: true
 
 jobs:
   cleanup:
@@ -12,7 +14,8 @@ jobs:
       - name: Delete old container image versions
         uses: actions/delete-package-versions@v5
         with:
-          package-name: "nginx"
+          owner: technobureau
+          package-name: ${{ github.event.inputs.pkg }}
           package-type: "container"
           min-versions-to-keep: 5
           delete-only-untagged-versions: false

@@ -10,7 +10,7 @@ RUN curl -L https://download.opensuse.org/repositories/home:/ganapathi/UBI9/home
 
 ENV DISALLOW_PACKAGES="grep,sed,gawk,findutils,diffutils,util-linux-core"
 
-RUN install_packages_chroot nginx-all-modules nginx geolite2-country openssl-fips-provider
+RUN install_packages_chroot nginx-all-modules nginx openssl-fips-provider
 
 RUN echo "nonroot:x:65532:65532:NonRoot User:/home/nonroot:/bin/sh" >> /tmp/null/rootfs/etc/passwd && \
     echo "nonroot:x:65532:" >> /tmp/null/rootfs/etc/group

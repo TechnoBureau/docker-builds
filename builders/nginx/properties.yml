@@ -18,3 +18,11 @@ rpm_packages:
   all:
     - coreutils-single
     - nginx-core
+    # Runtime tools for the entrypoint/setup scripts (entrypoint.sh, setup.sh,
+    # libnginx.sh): shell, text tools, and openssl for sample cert generation
+    - bash
+    - sed
+    - grep
+    - gawk
+    - findutils
+    - openssl

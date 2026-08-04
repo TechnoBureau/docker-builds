@@ -1,21 +1,18 @@
-{{ setup_newroot() }}
-{{ install_newroot() }}
-{{ cleanup_newroot() }}
+FROM quay.io/hummingbird-ci/hummingbird-builder:latest AS build
+RUN dnf -y install gcc glibc-static
+COPY src/ /app/
+RUN gcc -Os -static -s -o /app/snooze /app/snooze.c
 
-# Build the static binary with the hummingbird toolchain. The build happens
-# outside NEWROOT, so the build dependencies and sources never reach the
-# final image (chunkah snapshots only NEWROOT).
-RUN dnf -y install --setopt=install_weak_deps=False gcc glibc-static
+# hi/static: Red Hat's minimal base for statically compiled applications —
+# CA certificates, timezone data, non-root user; no shell, libc, or package
+# manager (https://hummingbird-project.io, images/static).
+FROM registry.access.redhat.com/hi/static:latest
+COPY --from=build /app/snooze /snooze
 
-COPY src/ /tmp/snooze-src/
-RUN mkdir -p /tmp/snooze-build && \
-    gcc -Os -static -s -o /tmp/snooze-build/snooze /tmp/snooze-src/snooze.c
-
-RUN cp /tmp/snooze-build/snooze ${NEWROOT}/snooze
-
-{{ final_stage() }}
+ENV HOME=/tmp
+WORKDIR /tmp
 
 EXPOSE 8080
 
 ENTRYPOINT ["/snooze"]
-{{ set_user() }}
+USER 65532

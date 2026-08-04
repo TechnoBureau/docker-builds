@@ -1,5 +1,5 @@
 ---
-main_package: nginx
+main_package: nginx-core
 repository: nginx
 # endoflife.date: mainline + stable at major.minor granularity
 stream: "1.30"
@@ -12,16 +12,9 @@ url: "https://nginx.org"
 reverse_dependency_tests: false
 tags:
   - value: latest
-  - value: '{{ package_major_minor_version("nginx") }}'
+  - value: '{{ package_major_minor_version("nginx-core") }}'
     label: io.hummingbird-project.major-minor-version
 rpm_packages:
   all:
-    - nginx
-    # all modules except the geoip ones: require libGeoIP which is not
-    # packaged in the hummingbird repo
-    - nginx-mod-http-image-filter
-    - nginx-mod-http-perl
-    - nginx-mod-http-xslt-filter
-    - nginx-mod-mail
-    - nginx-mod-stream
-    - openssl-fips-provider
+    - coreutils-single
+    - nginx-core

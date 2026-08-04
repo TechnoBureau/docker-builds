@@ -1,0 +1,15 @@
+{%- set remove_rpms_from_newroot = 'grep findutils bash coreutils-single' -%}
+{{ setup_newroot() }}
+{{ install_newroot() }}
+{{ cleanup_newroot() }}
+
+RUN groupadd -R ${NEWROOT} curl_group && \
+    useradd -R ${NEWROOT} -u {{ default_user }} -g curl_group curl_user && \
+    mkdir -p "${NEWROOT}/home/curl_user" && \
+    chown {{ default_user }}:{{ default_user }} "${NEWROOT}/home/curl_user"
+
+{{ final_stage() }}
+
+ENTRYPOINT ["/usr/bin/curl"]
+WORKDIR /home/curl_user
+{{ set_user() }}

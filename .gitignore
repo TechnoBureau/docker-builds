@@ -1,1 +1,3 @@
 source
+# hummingbird render work tree
+.hbgen/

@@ -1,0 +1,27 @@
+---
+main_package: curl
+repository: curl
+# no parallel branches, not on endoflife.date; curl 9 plausible (jumped 7→8 in 2023)
+stream: "8"
+summary: "Command-line tool for transferring data with network protocols"
+description: >-
+  The curl utility interacts with various network endpoints to perform data
+  exchanges. It supports multiple communication channels, including HTTP
+  and HTTPS, to transfer data to or from a server for testing, automation,
+  and script-based tasks.
+url: "https://curl.se"
+# used pervasively (too many rev deps), and API is small enough to cover in our own tests
+reverse_dependency_tests: false
+tags:
+  - value: latest
+  - value: '{{ package_major_version("curl") }}'
+    label: io.hummingbird-project.major-version
+  - value: '{{ package_major_minor_version("curl") }}'
+    label: io.hummingbird-project.major-minor-version
+  - value: '{{ package_version("curl") }}'
+    label: org.opencontainers.image.version
+rpm_packages:
+  all:
+    - coreutils-single
+    - curl
+    - libcurl-minimal

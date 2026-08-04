@@ -1,0 +1,9 @@
+# Per-image overrides for nginx, deep-merged over builders/variables.yml.
+# nginx is the purpose of this image, so exclude the CIS/STIG rules that
+# require it to be removed.
+oscap:
+  exclude_rules:
+    - id: xccdf_org.ssgproject.content_rule_root_path_no_dot
+      reason: "False positive: environmentvariable58 probe requires /proc which is unavailable in offline chroot scanning"
+    - id: xccdf_org.ssgproject.content_rule_package_nginx_removed
+      reason: "nginx is the purpose of this image"

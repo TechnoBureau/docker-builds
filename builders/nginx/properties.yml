@@ -1,0 +1,27 @@
+---
+main_package: nginx
+repository: nginx
+# endoflife.date: mainline + stable at major.minor granularity
+stream: "1.30"
+summary: "High-performance HTTP and reverse proxy server"
+description: >-
+  nginx is a high-performance HTTP server, reverse proxy, and mail proxy
+  server. It is designed for maximum performance and stability, serving
+  static content with low memory usage and scaling across many connections.
+url: "https://nginx.org"
+reverse_dependency_tests: false
+tags:
+  - value: latest
+  - value: '{{ package_major_minor_version("nginx") }}'
+    label: io.hummingbird-project.major-minor-version
+rpm_packages:
+  all:
+    - nginx
+    # all modules except the geoip ones: require libGeoIP which is not
+    # packaged in the hummingbird repo
+    - nginx-mod-http-image-filter
+    - nginx-mod-http-perl
+    - nginx-mod-http-xslt-filter
+    - nginx-mod-mail
+    - nginx-mod-stream
+    - openssl-fips-provider

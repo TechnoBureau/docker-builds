@@ -1,0 +1,11 @@
+{{ setup_newroot() }}
+{{ install_newroot() }}
+{{ cleanup_newroot() }}
+
+{{ final_stage() }}
+
+ENV APP_NAME="ubi" \
+    APP_VERSION="{{ package_version("bash") }}"
+
+CMD ["/bin/sh"]
+{{ set_user() }}

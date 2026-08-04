@@ -1,0 +1,26 @@
+{%- set remove_rpms_from_newroot = 'grep findutils bash' -%}
+
+{{ setup_newroot() }}
+{{ install_newroot() }}
+{{ cleanup_newroot() }}
+
+COPY rootfs/nginx/ ${NEWROOT}/etc/nginx/
+
+RUN ln -sf /proc/1/fd/1 "${NEWROOT}/var/log/nginx/nginx.log" && \
+    ln -sf /proc/1/fd/1 "${NEWROOT}/var/log/nginx/access.log" && \
+    ln -sf /proc/1/fd/2 "${NEWROOT}/var/log/nginx/error.log" && \
+    chown -R {{ default_user }}:0 "${NEWROOT}/etc/nginx"
+
+{{ final_stage() }}
+
+ENV APP_NAME="nginx" \
+    APP_VERSION="{{ package_version("nginx") }}" \
+    NGINX_VERSION={{ package_version("nginx") }} \
+    NGINX_HTTPS_PORT_NUMBER="" \
+    NGINX_HTTP_PORT_NUMBER="8080"
+
+EXPOSE 8080
+STOPSIGNAL SIGQUIT
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+{{ set_user() }}

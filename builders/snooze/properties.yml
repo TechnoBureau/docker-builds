@@ -1,0 +1,21 @@
+---
+main_package: bash
+repository: snooze
+# custom application, no upstream version branches
+stream: "latest"
+summary: "Minimal static HTTP server"
+description: >-
+  snooze is a tiny HTTP server that answers every request with a fixed
+  message. It is compiled fully static in a Wolfi build stage and runs on a
+  minimal hummingbird core runtime (glibc + bash + coreutils-single).
+url: "https://github.com/technobureau/containers"
+reverse_dependency_tests: false
+variants:
+  - default
+tags:
+  - value: latest
+rpm_packages:
+  all:
+    - glibc
+    - bash
+    - coreutils-single

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Commit pending changes in submodules, then refresh their gitlinks
+# so `git commit` in the superproject always records the submodule HEAD.
+set -e
+msg="${1:-chore: sync submodules}"
+for sm in $(git submodule foreach --quiet 'echo "$sm_path"'); do
+    if (cd "$sm" && git add -A && ! git diff --cached --quiet); then
+        (cd "$sm" && git commit -m "$msg") || exit 1
+    fi
+    git add "$sm"
+done

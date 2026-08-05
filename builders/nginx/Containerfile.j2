@@ -11,15 +11,18 @@ COPY rootfs/nginx/conf.d/default.conf ${NEWROOT}/etc/nginx/conf.d/default.conf
 COPY rootfs/nginx/html/index.html ${NEWROOT}/usr/share/nginx/html/index.html
 
 # prebuildfs: shared library set (libcommon/libfs/liblog/libos/...)
-COPY prebuildfs/home/nonroot/scripts/ ${NEWROOT}/tmp/scripts/
+COPY prebuildfs/ ${NEWROOT}/
 # Image scripts (entrypoint/setup/run, libnginx.sh, nginx-env.sh, templates)
-COPY rootfs/scripts/ ${NEWROOT}/tmp/scripts/
+COPY rootfs/scripts/ ${NEWROOT}/usr/local/bin/
 # Custom init scripts (run by libentrypoint.sh custom_init_scripts at startup)
-COPY rootfs/docker-entrypoint-initdb.d/ ${NEWROOT}/tmp/docker-entrypoint-initdb.d/
+COPY rootfs/docker-entrypoint-initdb.d/ ${NEWROOT}/usr/local/docker-entrypoint-initdb.d/
 
 # libenv.sh regenerates ${HOME}/scripts/default-env.sh at startup, so the
 # scripts directory must be writable by the runtime user
-RUN chown -R {{ default_user }}:0 ${NEWROOT}/tmp/scripts
+RUN chown -R {{ default_user }}:0 ${NEWROOT}/usr/local/bin && \
+    chown -R {{ default_user }}:0 ${NEWROOT}/usr/local/docker-entrypoint-initdb.d && \
+    chmod -R g=u ${NEWROOT}/usr/local/bin && \
+    chmod -R g=u ${NEWROOT}/usr/local/docker-entrypoint-initdb.d
 
 # The nginx.conf wildcard include /usr/share/nginx/modules/*.conf must match
 # at least one file; ship an empty one so the non-root startup scripts do
@@ -31,7 +34,6 @@ RUN touch ${NEWROOT}/usr/share/nginx/modules/placeholder.conf
 ENV APP_NAME="nginx" \
     APP_VERSION="{{ package_version("nginx-core") }}" \
     NGINX_VERSION={{ package_version("nginx-core") }} \
-    PATH="/tmp/scripts/nginx:$PATH" \
     # Our nginx-core ships no bundled dynamic modules; disable the
     # bitnami default module list so setup.sh's module check is a no-op
     ENABLE_MODULES=""

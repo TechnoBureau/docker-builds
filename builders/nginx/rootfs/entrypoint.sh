@@ -27,7 +27,7 @@ env_dump "${HOME}/scripts/default-env.sh" || true
 
 if [[ "$1" = "run.sh" ]]; then
     info "** Starting NGINX setup **"
-    /usr/local/bin/nginx/setup.sh
+    /usr/local/bin/setup.sh
     info "** NGINX setup finished! **"
 fi
 

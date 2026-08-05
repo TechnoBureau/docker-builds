@@ -5,12 +5,12 @@
 # shellcheck disable=SC1090,SC1091
 
 # Load Generic Libraries
-. /tmp/scripts/libfs.sh
-. /tmp/scripts/libfile.sh
-. /tmp/scripts/liblog.sh
-. /tmp/scripts/libos.sh
-. /tmp/scripts/libservice.sh
-. /tmp/scripts/libvalidations.sh
+. /usr/local/bin/scripts/libfs.sh
+. /usr/local/bin/scripts/libfile.sh
+. /usr/local/bin/scripts/liblog.sh
+. /usr/local/bin/scripts/libos.sh
+. /usr/local/bin/scripts/libservice.sh
+. /usr/local/bin/scripts/libvalidations.sh
 
 # Functions
 

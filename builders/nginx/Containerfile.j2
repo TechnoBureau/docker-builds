@@ -12,8 +12,10 @@ COPY rootfs/nginx/html/index.html ${NEWROOT}/usr/share/nginx/html/index.html
 
 # prebuildfs: shared library set (libcommon/libfs/liblog/libos/...)
 COPY prebuildfs/ ${NEWROOT}/
-# Image scripts (entrypoint/setup/run, libnginx.sh, nginx-env.sh, templates)
-COPY rootfs/scripts/ ${NEWROOT}/usr/local/bin/
+# Entrypoint at the image root (hummingbird convention)
+COPY rootfs/entrypoint.sh ${NEWROOT}/entrypoint.sh
+# Image scripts (setup/run, libnginx.sh, nginx-env.sh, templates, libraries)
+COPY rootfs/scripts/ ${NEWROOT}/usr/local/bin/scripts/
 # Custom init scripts (run by libentrypoint.sh custom_init_scripts at startup)
 COPY rootfs/docker-entrypoint-initdb.d/ ${NEWROOT}/usr/local/docker-entrypoint-initdb.d/
 
@@ -36,11 +38,16 @@ ENV APP_NAME="nginx" \
     NGINX_VERSION={{ package_version("nginx-core") }} \
     # Our nginx-core ships no bundled dynamic modules; disable the
     # bitnami default module list so setup.sh's module check is a no-op
-    ENABLE_MODULES=""
+    ENABLE_MODULES="" \
+    # run.sh is executed via PATH (CMD ["run.sh"]) from the entrypoint
+    PATH="/usr/local/bin/scripts/nginx:$PATH" \
+    # custom_init_scripts defaults to ${HOME}/docker-entrypoint-initdb.d
+    # (HOME=/tmp); point it at the image init scripts directory instead
+    INITSCRIPTS_DIR="/usr/local/docker-entrypoint-initdb.d"
 
 EXPOSE 8080
 STOPSIGNAL SIGQUIT
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["run.sh"]
 {{ set_user() }}

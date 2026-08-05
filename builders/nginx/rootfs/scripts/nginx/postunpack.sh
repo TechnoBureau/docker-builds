@@ -7,8 +7,8 @@ set -o pipefail
 #set -o xtrace # Uncomment this line for debugging purposes
 
 # Load libraries
-. /tmp/scripts/libnginx.sh
-. /tmp/scripts/libfs.sh
+. /usr/local/bin/scripts/libnginx.sh
+. /usr/local/bin/scripts/libfs.sh
 
 # Auxiliar Functions
 
@@ -29,7 +29,7 @@ nginx_patch_httpoxy_vulnerability() {
 }
 
 # Load NGINX environment variables
-. /tmp/scripts/nginx-env.sh
+. /usr/local/bin/scripts/nginx-env.sh
 
 
 # Unset HTTP_PROXY header to protect vs HTTPPOXY vulnerability

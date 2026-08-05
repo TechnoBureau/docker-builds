@@ -7,14 +7,14 @@
 #set -o xtrace # Uncomment this line for debugging purposes
 
 # Load libraries
-. /tmp/scripts/libos.sh
-. /tmp/scripts/libfs.sh
-. /tmp/scripts/libnginx.sh
-. /tmp/scripts/liblog.sh
-. /tmp/scripts/libentrypoint.sh
+. /usr/local/bin/scripts/libos.sh
+. /usr/local/bin/scripts/libfs.sh
+. /usr/local/bin/scripts/libnginx.sh
+. /usr/local/bin/scripts/liblog.sh
+. /usr/local/bin/scripts/libentrypoint.sh
 
 # Load NGINX environment variables
-. /tmp/scripts/nginx-env.sh
+. /usr/local/bin/scripts/nginx-env.sh
 
 
 # Ensure NGINX is stopped when this script ends

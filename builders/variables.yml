@@ -33,6 +33,6 @@ oscap:
       reason: "False positive: environmentvariable58 probe requires /proc which is unavailable in offline chroot scanning"
 registry: ghcr.io/technobureau
 labels:
-  maintainer: "Technobureau"
+  maintainer: "Ganapathi Chidambaram"
   vendor: "Technobureau"
   source_url: "https://github.com/technobureau/containers"

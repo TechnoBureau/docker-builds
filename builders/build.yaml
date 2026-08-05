@@ -1,4 +1,0 @@
-REGISTRY:
-  - name: ghcr.io
-    prefix: technobureau
-    push: true

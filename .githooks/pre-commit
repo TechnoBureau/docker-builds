@@ -3,9 +3,33 @@
 # so `git commit` in the superproject always records the submodule HEAD.
 set -e
 msg="${1:-chore: sync submodules}"
+
+# git exports GIT_DIR/GIT_WORK_TREE to hooks; unset so the git commands
+# below discover each submodule's own gitdir (scripts/.git) instead of
+# treating it as a plain directory under the superproject's .git
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_COMMON_DIR GIT_PREFIX
+
+sm_paths=""
 for sm in $(git submodule foreach --quiet 'echo "$sm_path"'); do
-    if (cd "$sm" && git add -A && ! git diff --cached --quiet); then
-        (cd "$sm" && git commit -m "$msg") || exit 1
+    sm_paths="$sm_paths $sm "
+    if git -C "$sm" add -A && ! git -C "$sm" diff --cached --quiet; then
+        git -C "$sm" commit -m "$msg"
     fi
     git add "$sm"
 done
+
+# git commit decides what to commit BEFORE running this hook, so a gitlink
+# staged here is only included when something else was already staged. If
+# the gitlink(s) are the only staged change, the commit will abort with
+# "no changes added" - tell the user to just run `git commit` again.
+only="$(git diff --cached --name-only)"
+if [[ -n "$only" ]]; then
+    all_gitlinks=1
+    while IFS= read -r p; do
+        case "$sm_paths" in *" $p "*) ;; *) all_gitlinks=0 ;; esac
+    done <<< "$only"
+    if [[ "$all_gitlinks" -eq 1 ]]; then
+        echo "pre-commit: submodule committed and gitlink staged - run 'git commit' again to record it"
+        exit 1
+    fi
+fi

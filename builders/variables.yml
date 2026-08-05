@@ -18,6 +18,9 @@ default_rpm_packages:
     - shadow-utils
 variant_descriptions:
   default: "Standard production image"
+platforms:
+  - linux/amd64
+  - linux/arm64
 default_variant_repos:
   hummingbird:
     - hummingbird.repo

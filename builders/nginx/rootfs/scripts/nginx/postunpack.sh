@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # shellcheck disable=SC1091
 
 set -o errexit
@@ -6,9 +6,9 @@ set -o errexit
 set -o pipefail
 #set -o xtrace # Uncomment this line for debugging purposes
 
-# Load libraries
-. /usr/local/bin/scripts/libnginx.sh
-. /usr/local/bin/scripts/libfs.sh
+# Load libraries (prebuildfs shared libs + nginx additions, all in /usr/local/bin)
+# shellcheck source=/usr/local/bin/libnginx.sh
+. /usr/local/bin/libnginx.sh
 
 # Auxiliar Functions
 
@@ -29,7 +29,8 @@ nginx_patch_httpoxy_vulnerability() {
 }
 
 # Load NGINX environment variables
-. /usr/local/bin/scripts/nginx-env.sh
+# shellcheck source=/usr/local/bin/nginx-env.sh
+. /usr/local/bin/nginx-env.sh
 
 
 # Unset HTTP_PROXY header to protect vs HTTPPOXY vulnerability
@@ -42,5 +43,3 @@ nginx_patch_httpoxy_vulnerability
 
 # Ensure the .rnd is created in the nonroot HOME
 touch "${HOME}/.rnd" && chmod g+rw "${HOME}/.rnd"
-
-

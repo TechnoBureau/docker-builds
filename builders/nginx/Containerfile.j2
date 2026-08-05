@@ -10,13 +10,15 @@ COPY rootfs/nginx/nginx.conf ${NEWROOT}/etc/nginx/nginx.conf
 COPY rootfs/nginx/conf.d/default.conf ${NEWROOT}/etc/nginx/conf.d/default.conf
 COPY rootfs/nginx/html/index.html ${NEWROOT}/usr/share/nginx/html/index.html
 
-# prebuildfs: shared library set (libcommon/libfs/liblog/libos/...)
+# prebuildfs: shared library set (libentrypoint/libenv/libfs/libhook/libjson/
+# liblog/libwatch), copied to /usr/local/bin
 COPY prebuildfs/ ${NEWROOT}/
 # Entrypoint at the image root (hummingbird convention)
 COPY rootfs/entrypoint.sh ${NEWROOT}/entrypoint.sh
-# Image scripts (setup/run, libnginx.sh, nginx-env.sh, templates, libraries)
-COPY rootfs/scripts/ ${NEWROOT}/usr/local/bin/scripts/
-# Custom init scripts (run by libentrypoint.sh custom_init_scripts at startup)
+# NGINX additions (libnginx.sh, nginx-env.sh, nginx/ with setup/run/templates);
+# sits alongside the prebuildfs libs in /usr/local/bin
+COPY rootfs/scripts/ ${NEWROOT}/usr/local/bin/
+# Custom init scripts (run by libentrypoint.sh entrypoint_init_scripts at startup)
 COPY rootfs/docker-entrypoint-initdb.d/ ${NEWROOT}/usr/local/docker-entrypoint-initdb.d/
 
 # libenv.sh regenerates ${HOME}/scripts/default-env.sh at startup, so the
@@ -37,11 +39,11 @@ ENV APP_NAME="nginx" \
     APP_VERSION="{{ package_version("nginx-core") }}" \
     NGINX_VERSION={{ package_version("nginx-core") }} \
     # Our nginx-core ships no bundled dynamic modules; disable the
-    # bitnami default module list so setup.sh's module check is a no-op
+    # module list so setup.sh's module check is a no-op
     ENABLE_MODULES="" \
     # run.sh is executed via PATH (CMD ["run.sh"]) from the entrypoint
-    PATH="/usr/local/bin/scripts/nginx:$PATH" \
-    # custom_init_scripts defaults to ${HOME}/docker-entrypoint-initdb.d
+    PATH="/usr/local/bin/nginx:$PATH" \
+    # entrypoint_init_scripts defaults to ${HOME}/docker-entrypoint-initdb.d
     # (HOME=/tmp); point it at the image init scripts directory instead
     INITSCRIPTS_DIR="/usr/local/docker-entrypoint-initdb.d"
 

@@ -1,5 +1,5 @@
 #!/bin/sh
 #
-. /usr/local/bin/scripts/liblog.sh
+. /usr/local/bin/liblog
 
 info "This is a dummy initialization script."

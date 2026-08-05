@@ -8,7 +8,8 @@ set -o pipefail
 # set -o xtrace # Uncomment this line for debugging purposes
 
 # Load libraries
-. /usr/local/bin/scripts/liblog.sh
+# shellcheck source=/usr/local/bin/liblog
+. /usr/local/bin/liblog
 
 info "** Starting NGINX **"
 exec nginx -g " daemon off;"

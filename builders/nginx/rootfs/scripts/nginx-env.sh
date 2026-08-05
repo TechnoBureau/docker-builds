@@ -1,31 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 # Environment configuration for nginx
-# Load logging library
-# shellcheck disable=SC1090,SC1091
-. /usr/local/bin/scripts/liblog.sh
+# Load logging library (shared prebuildfs lib, see lib/hummingbird/prebuildfs)
+# shellcheck source=/usr/local/bin/liblog
+. /usr/local/bin/liblog
 
-# Logging configuration
-export DEBUG="${DEBUG:-false}"
-
-# Paths
-# Image layout root: scripts live at ${ROOT_DIR}/scripts (libnginx.sh resolves
-# the nginx templates dir against it)
-export ROOT_DIR="${ROOT_DIR:-/usr/local/bin}"
+# Paths consumed by libnginx.sh
 export NGINX_CONF_DIR="/etc/nginx"
-export NGINX_SERVER_BLOCKS_DIR="${NGINX_CONF_DIR}/server_blocks"
 export NGINX_CONF_FILE="${NGINX_CONF_DIR}/nginx.conf"
 export NGINX_PID_FILE="/tmp/nginx.pid"
-# Custom environment variables may be defined below
-export MODULES_CONF_FOLDER="${MODULES_CONF_FOLDER:-/usr/share/nginx/modules}"
-export ENABLE_MODULES="${ENABLE_MODULES:-http_headers_more_filter,http_vhost_traffic_status,http_geoip2,http_sticky,http_opentracing,http_ot}"
 export NGINX_CERT_PATH="${NGINX_CERT_PATH:-/etc/nginx/certs}"
-export NGINX_TEMPLATE_PATH="${NGINX_TEMPLATE_PATH:-${NGINX_CONF_DIR}/templates}"
-
-## Nginx Controller related variables
 export NGINX_DEFAULT_TLS_NAME="${NGINX_DEFAULT_TLS_NAME:-server}"
-
-export LOG_LEVEL="${LOG_LEVEL:-}"
-export LOG_OUTPUT="${LOG_OUTPUT:-}"
+export NGINX_SKIP_SAMPLE_CERTS="${NGINX_SKIP_SAMPLE_CERTS:-false}"
+export NGINX_TEMPLATE_PATH="${NGINX_TEMPLATE_PATH:-${NGINX_CONF_DIR}/templates}"
+export MODULES_CONF_FOLDER="${MODULES_CONF_FOLDER:-/usr/share/nginx/modules}"
 
 ## Helm chart default environment variable values as higher priority, so it must be specified at the end.
 if [[ -f "${HOME}/scripts/default-env.sh" ]]; then

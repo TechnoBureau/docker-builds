@@ -9,7 +9,7 @@ description: >-
   and coreutils-single. Suitable as a foundation for applications that do
   not ship their own runtime. Includes the hummingbird release package for
   repository identity.
-url: "https://github.com/technobureau/containers"
+url: "https://github.com/technobureau/docker-builds"
 reverse_dependency_tests: false
 variants:
   - default

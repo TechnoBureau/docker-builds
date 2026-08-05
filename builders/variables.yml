@@ -38,4 +38,4 @@ registry: ghcr.io/technobureau
 labels:
   maintainer: "Ganapathi Chidambaram"
   vendor: "Technobureau"
-  source_url: "https://github.com/technobureau/containers"
+  source_url: "https://github.com/technobureau/docker-builds"

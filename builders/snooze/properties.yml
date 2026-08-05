@@ -9,7 +9,7 @@ description: >-
   message. It is compiled fully static in a build stage and runs on the
   Red Hat hummingbird static base (hi/static): CA certificates, timezone
   data, and a non-root user — no shell, libc, or package manager.
-url: "https://github.com/technobureau/containers"
+url: "https://github.com/technobureau/docker-builds"
 reverse_dependency_tests: false
 variants:
   - default

@@ -13,9 +13,11 @@ jobs:
     steps:
       - name: Fetch all container packages
         id: packages
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN returns 400 "Invalid argument" for org container package listing
+          # (known GitHub limitation); only a classic PAT with read:packages works.
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const fs = require('fs');
             const org = process.env.ORG;
@@ -47,7 +49,7 @@ jobs:
           ORG: technobureau
 
       - name: Delete old versions for each package
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

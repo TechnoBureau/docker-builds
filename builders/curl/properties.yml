@@ -15,9 +15,7 @@ reverse_dependency_tests: false
 tags:
   - value: latest
   - value: '{{ package_major_version("curl") }}'
-    label: io.hummingbird-project.major-version
   - value: '{{ package_major_minor_version("curl") }}'
-    label: io.hummingbird-project.major-minor-version
   - value: '{{ package_version("curl") }}'
     label: org.opencontainers.image.version
 rpm_packages:

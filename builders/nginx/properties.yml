@@ -13,6 +13,8 @@ reverse_dependency_tests: false
 tags:
   - value: latest
   - value: '{{ package_major_minor_version("nginx-core") }}'
+  - value: '{{ package_version("nginx-core") }}'
+    label: org.opencontainers.image.version
 rpm_packages:
   all:
     - coreutils-single

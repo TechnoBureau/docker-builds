@@ -24,8 +24,19 @@ platforms:
 default_variant_repos:
   hummingbird:
     - hummingbird.repo
+  ubi9:
+    - ubi9.repo
+  ubi10:
+    - ubi10.repo
 oscap:
   enabled: true
+  # Per-distro SCAP datastreams used by verify-compliance in the builder stage.
+  # A distro listed here runs oscap verification with its datastream; the
+  # datastream file must be present in the hummingbird-builder image.
+  datastreams:
+    hummingbird: ssg-hummingbird-ds.xml
+    ubi9: ssg-rhel9-ds.xml
+    ubi10: ssg-rhel10-ds.xml
   profiles:
     cis: true
     stig:

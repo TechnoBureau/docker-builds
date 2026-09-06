@@ -30,11 +30,7 @@ RUN set -eux; \
 WORKDIR /usr/src
 
 RUN set -eux; \
-    NGINX_VER="{{ package_version("nginx-core") }}"; \
-    NGINX_VER="$(echo "$NGINX_VER" | sed 's/-.*//')"; \
-    if [ -z "$NGINX_VER" ] || [ "$NGINX_VER" = "{{ package_version("nginx-core") }}" ]; then \
-        NGINX_VER="$(${NEWROOT}/usr/sbin/nginx -v 2>&1 | sed -n 's/.*nginx\/\([0-9.]*\).*/\1/p')"; \
-    fi; \
+    NGINX_VER="$(echo '{{ package_version("nginx-core") }}' | sed 's/-.*//')"; \
     test -n "$NGINX_VER"; \
     echo "$NGINX_VER" > /usr/src/nginx.version; \
     curl -fsSL "https://nginx.org/download/nginx-${NGINX_VER}.tar.gz" -o nginx.tar.gz; \

@@ -1,31 +1,33 @@
-# nginx with extra third-party dynamic modules (headers-more, ndk, set-misc).
+# nginx + third-party dynamic modules, runtime seeded from the FIPS image.
 #
-# Module compile runs in the hummingbird builder (this CI does not pull
-# registry.access.redhat.com/hi/nginx:latest-fips-builder — that name is not
-# on the hummingbird package set). NEWROOT is still seeded from the FIPS
-# runtime when that image is available; otherwise install_newroot() fills it.
+# gcc/make/git stay in the hummingbird *builder* filesystem only
+# (--installroot=/). They must never land in ${NEWROOT} (chunkah would
+# publish them as rpm/gcc layers and balloon the image past the ~18MiB
+# FIPS runtime).
 #
-# Optional bases (used only if the daemon can pull them):
 #   --build-arg NGINX_FIPS_RUNTIME=registry.access.redhat.com/hi/nginx:latest-fips
-#   --build-arg NGINX_FIPS_BUILDER=registry.access.redhat.com/hi/nginx:latest-fips-builder
+
+ARG NGINX_FIPS_RUNTIME=registry.access.redhat.com/hi/nginx:latest-fips
+FROM ${NGINX_FIPS_RUNTIME} AS nginx-fips-runtime
 
 {{ setup_newroot() }}
-{{ install_newroot() }}
 
-# ---------------------------------------------------------------------------
-# Compile third-party modules on the hummingbird builder toolchain.
-# Hummingbird has pcre2-devel (not pcre-devel), curl (not wget), and no
-# redhat-rpm-config / nginx-mod-devel.
-# ---------------------------------------------------------------------------
+# Use the FIPS runtime as NEWROOT instead of dnf-installing a blank chroot.
+# Do not call install_newroot() — that re-resolves nginx-core and pulls
+# weak deps (gperftools, systemd, gcc-adjacent libs) into the image.
+COPY --from=nginx-fips-runtime / ${NEWROOT}/
+
+# Toolchain in the *builder* root only. Hummingbird dnf.conf may default
+# installroot to NEWROOT; override it so gcc never enters the runtime.
 RUN set -eux; \
     if command -v dnf >/dev/null 2>&1; then PKGMGR=dnf; \
     elif command -v microdnf >/dev/null 2>&1; then PKGMGR=microdnf; \
     else PKGMGR=yum; fi; \
-    $PKGMGR -y install --setopt=install_weak_deps=0 --skip-unavailable \
-        gcc gcc-c++ make git \
+    $PKGMGR -y --installroot=/ --setopt=install_weak_deps=0 --skip-unavailable \
+        install gcc gcc-c++ make git \
         pcre2-devel zlib-devel openssl-devel \
         tar gzip curl; \
-    $PKGMGR clean all || true
+    $PKGMGR --installroot=/ clean all || true
 
 WORKDIR /usr/src
 
@@ -54,7 +56,22 @@ RUN set -eux; \
         'load_module /usr/share/nginx/modules/ndk_http_module.so;' \
         'load_module /usr/share/nginx/modules/ngx_http_set_misc_module.so;' \
         > ${NEWROOT}/usr/share/nginx/modules/90-third-party.conf; \
+    rm -rf /usr/src /root/.cache; \
     ls -l ${NEWROOT}/usr/share/nginx/modules
+
+# If any build RPM leaked into NEWROOT, drop it. gcc is not a runtime dep.
+# gperftools is only needed if the FIPS nginx binary is linked to tcmalloc;
+# it already lives in the 18MiB base when required — do not add it here.
+RUN set -eux; \
+    if command -v dnf >/dev/null 2>&1; then \
+        dnf -y --installroot="${NEWROOT}" --setopt=install_weak_deps=0 \
+            remove gcc gcc-c++ make git \
+            pcre2-devel zlib-devel openssl-devel \
+            redhat-rpm-config 2>/dev/null || true; \
+        dnf --installroot="${NEWROOT}" clean all || true; \
+    fi; \
+    rm -rf "${NEWROOT}/var/cache/dnf" "${NEWROOT}/var/cache/yum" \
+           "${NEWROOT}/usr/src" "${NEWROOT}/root/.cache"
 
 {{ cleanup_newroot() }}
 
@@ -62,8 +79,6 @@ RUN set -eux; \
 RUN ln -sf /dev/stdout ${NEWROOT}/var/log/nginx/access.log && \
     ln -sf /dev/stderr ${NEWROOT}/var/log/nginx/error.log
 
-# prebuildfs: shared library set (libentrypoint/libenv/libfs/libhook/libjson/
-# liblog/libwatch), copied to /usr/local/bin
 COPY prebuildfs/ ${NEWROOT}/
 COPY rootfs/entrypoint.sh ${NEWROOT}/entrypoint.sh
 COPY rootfs/scripts/ ${NEWROOT}/usr/local/bin/
@@ -71,16 +86,11 @@ COPY rootfs/docker-entrypoint-initdb.d/ ${NEWROOT}/usr/local/docker-entrypoint-i
 COPY rootfs/nginx/ ${NEWROOT}/etc/nginx/
 COPY rootfs/nginx/html/index.html ${NEWROOT}/usr/share/nginx/html/index.html
 
-# libenv.sh regenerates ${HOME}/scripts/default-env.sh at startup, so the
-# scripts directory must be writable by the runtime user
 RUN chown -R {{ default_user }}:0 ${NEWROOT}/usr/local/bin && \
     chown -R {{ default_user }}:0 ${NEWROOT}/usr/local/docker-entrypoint-initdb.d && \
     chmod -R g=u ${NEWROOT}/usr/local/bin && \
     chmod -R g=u ${NEWROOT}/usr/local/docker-entrypoint-initdb.d
 
-# The nginx.conf wildcard include /usr/share/nginx/modules/*.conf must match
-# at least one file; ship an empty one so the non-root startup scripts do
-# not need to create placeholders in root-owned paths
 RUN touch ${NEWROOT}/usr/share/nginx/modules/placeholder.conf && \
     chmod 644 ${NEWROOT}/usr/share/nginx/modules/*.so ${NEWROOT}/usr/share/nginx/modules/*.conf || true
 

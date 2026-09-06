@@ -17,15 +17,9 @@ tags:
   - value: '{{ package_major_minor_version("nginx-core") }}'
   - value: '{{ package_version("nginx-core") }}'
     label: org.opencontainers.image.version
+# NEWROOT is copied from the FIPS runtime image (not dnf --installroot).
+# Keep the list minimal so version tags still resolve; do not add gcc or
+# weak deps — those belong only in the builder filesystem.
 rpm_packages:
   all:
-    - coreutils-single
     - nginx-core
-    # Runtime tools for the entrypoint/setup scripts (entrypoint.sh, setup.sh,
-    # libnginx.sh): shell, text tools, and openssl for sample cert generation
-    - bash
-    - sed
-    - grep
-    - gawk
-    - findutils
-    - openssl

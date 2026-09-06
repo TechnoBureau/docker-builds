@@ -1,5 +1,107 @@
+# nginx FIPS image with extra third-party dynamic modules.
+# Multi-stage:
+#   1) latest-fips-builder  — compile headers-more, tcp-keepalive, ndk, set-misc
+#   2) latest-fips          — seed NEWROOT (do not start from a blank hummingbird root)
+#   3) hummingbird builder  — install extra RPMs, copy modules, then final_stage()
+#
+# Override bases at build time:
+#   --build-arg NGINX_FIPS_RUNTIME=registry.access.redhat.com/ubi9/nginx:latest-fips
+#   --build-arg NGINX_FIPS_BUILDER=registry.access.redhat.com/ubi9/nginx:latest-fips-builder
+#
+# Default names match the requested registry.access.redhat.com/hi/nginx FIPS pair.
+
+ARG NGINX_FIPS_RUNTIME=registry.access.redhat.com/hi/nginx:latest-fips
+ARG NGINX_FIPS_BUILDER=registry.access.redhat.com/hi/nginx:latest-fips-builder
+
+# ---------------------------------------------------------------------------
+# Stage: compile third-party modules against the FIPS nginx ABI
+# ---------------------------------------------------------------------------
+FROM ${NGINX_FIPS_BUILDER} AS nginx-module-builder
+
+USER 0
+
+# Toolchain + headers matching the runtime nginx. Prefer dnf; fall back to microdnf/yum.
+RUN set -eux; \
+    if command -v dnf >/dev/null 2>&1; then PKGMGR=dnf; \
+    elif command -v microdnf >/dev/null 2>&1; then PKGMGR=microdnf; \
+    else PKGMGR=yum; fi; \
+    $PKGMGR -y install --setopt=install_weak_deps=0 \
+        gcc gcc-c++ make git \
+        pcre2-devel pcre-devel zlib-devel openssl-devel \
+        redhat-rpm-config \
+        wget tar gzip findutils \
+        nginx-mod-devel nginx-devel 2>/dev/null || \
+    $PKGMGR -y install --setopt=install_weak_deps=0 \
+        gcc gcc-c++ make git \
+        pcre2-devel pcre-devel zlib-devel openssl-devel \
+        redhat-rpm-config wget tar gzip findutils; \
+    $PKGMGR clean all || true
+
+WORKDIR /usr/src
+
+# Resolve the exact nginx version the FIPS builder ships so dynamic modules ABI-match.
+RUN set -eux; \
+    NGINX_VER="$(nginx -v 2>&1 | sed -n 's/.*nginx\/\([0-9.]*\).*/\1/p')"; \
+    test -n "$NGINX_VER"; \
+    echo "$NGINX_VER" > /usr/src/nginx.version; \
+    wget -q "https://nginx.org/download/nginx-${NGINX_VER}.tar.gz"; \
+    tar -xzf "nginx-${NGINX_VER}.tar.gz"; \
+    ln -s "nginx-${NGINX_VER}" nginx-src
+
+# Third-party module sources (pinned to branches that track nginx 1.2x/1.3x).
+RUN set -eux; \
+    git clone --depth 1 https://github.com/openresty/headers-more-nginx-module.git; \
+    git clone --depth 1 https://github.com/simpl/ngx_devel_kit.git; \
+    git clone --depth 1 https://github.com/openresty/set-misc-nginx-module.git; \
+    git clone --depth 1 https://github.com/yaoweibin/nginx_tcp_proxy_module.git tcp-keepalive-module || \
+    git clone --depth 1 https://github.com/chobits/ngx_http_proxy_connect_module.git tcp-keepalive-module
+
+# Configure nginx identically enough to emit .so modules, then compile only add-ons.
+# headers-more + ndk/set-misc are HTTP dynamic modules; tcp proxy is compiled as
+# an extra HTTP/stream object when --add-dynamic-module is accepted.
+WORKDIR /usr/src/nginx-src
+RUN set -eux; \
+    CONF_ARGS="$(nginx -V 2>&1 | sed -n 's/.*configure arguments: //p')"; \
+    eval "./configure $CONF_ARGS \
+        --with-compat \
+        --add-dynamic-module=/usr/src/headers-more-nginx-module \
+        --add-dynamic-module=/usr/src/ngx_devel_kit \
+        --add-dynamic-module=/usr/src/set-misc-nginx-module \
+        --add-dynamic-module=/usr/src/tcp-keepalive-module" \
+        || ./configure --with-compat \
+            --with-http_ssl_module --with-http_v2_module --with-stream --with-stream_ssl_module \
+            --add-dynamic-module=/usr/src/headers-more-nginx-module \
+            --add-dynamic-module=/usr/src/ngx_devel_kit \
+            --add-dynamic-module=/usr/src/set-misc-nginx-module; \
+    make -j"$(nproc)" modules; \
+    mkdir -p /opt/nginx-modules /opt/nginx-modules-conf; \
+    cp -a objs/*.so /opt/nginx-modules/; \
+    printf '%s\n' \
+        'load_module /usr/share/nginx/modules/ngx_http_headers_more_filter_module.so;' \
+        'load_module /usr/share/nginx/modules/ndk_http_module.so;' \
+        'load_module /usr/share/nginx/modules/ngx_http_set_misc_module.so;' \
+        > /opt/nginx-modules-conf/90-third-party.conf; \
+    ls -l /opt/nginx-modules
+
+# ---------------------------------------------------------------------------
+# Stage: FIPS runtime filesystem used as NEWROOT seed (not a blank chroot)
+# ---------------------------------------------------------------------------
+FROM ${NGINX_FIPS_RUNTIME} AS nginx-fips-runtime
+
+# ---------------------------------------------------------------------------
+# Stage: hummingbird builder — seed from FIPS runtime, then extra RPMs / rootfs
+# ---------------------------------------------------------------------------
 {{ setup_newroot() }}
+
+# Overlay the Red Hat nginx FIPS runtime into NEWROOT instead of starting empty.
+COPY --from=nginx-fips-runtime / ${NEWROOT}/
+
 {{ install_newroot() }}
+
+# Drop compiled third-party modules + load_module snippet into the seeded root.
+COPY --from=nginx-module-builder /opt/nginx-modules/ ${NEWROOT}/usr/share/nginx/modules/
+COPY --from=nginx-module-builder /opt/nginx-modules-conf/ ${NEWROOT}/usr/share/nginx/modules/
+
 {{ cleanup_newroot() }}
 
 # Make sure the nginx logs appear on STDOUT and STDERR
@@ -25,20 +127,17 @@ RUN chown -R {{ default_user }}:0 ${NEWROOT}/usr/local/bin && \
 # The nginx.conf wildcard include /usr/share/nginx/modules/*.conf must match
 # at least one file; ship an empty one so the non-root startup scripts do
 # not need to create placeholders in root-owned paths
-RUN touch ${NEWROOT}/usr/share/nginx/modules/placeholder.conf
+RUN touch ${NEWROOT}/usr/share/nginx/modules/placeholder.conf && \
+    chmod 644 ${NEWROOT}/usr/share/nginx/modules/*.so ${NEWROOT}/usr/share/nginx/modules/*.conf || true
 
 {{ final_stage() }}
 
 ENV APP_NAME="nginx" \
     APP_VERSION="{{ package_version("nginx-core") }}" \
     NGINX_VERSION={{ package_version("nginx-core") }} \
-    # Our nginx-core ships no bundled dynamic modules; disable the
-    # module list so setup.sh's module check is a no-op
-    ENABLE_MODULES="" \
-    # run.sh is executed via PATH (CMD ["run.sh"]) from the entrypoint
+    # Third-party dynamic modules compiled in nginx-module-builder
+    ENABLE_MODULES="headers-more ndk set-misc tcp-keepalive" \
     PATH="/usr/local/bin/nginx:$PATH" \
-    # entrypoint_init_scripts defaults to ${HOME}/docker-entrypoint-initdb.d
-    # (HOME=/tmp); point it at the image init scripts directory instead
     INITSCRIPTS_DIR="/usr/local/docker-entrypoint-initdb.d"
 
 EXPOSE 8080

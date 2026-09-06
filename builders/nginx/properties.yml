@@ -6,8 +6,10 @@ stream: "1.30"
 summary: "High-performance HTTP and reverse proxy server"
 description: >-
   nginx is a high-performance HTTP server, reverse proxy, and mail proxy
-  server. It is designed for maximum performance and stability, serving
-  static content with low memory usage and scaling across many connections.
+  server. This image is seeded from the Red Hat nginx FIPS runtime
+  (registry.access.redhat.com/hi/nginx:latest-fips) with third-party
+  dynamic modules (headers-more, ndk, set-misc, tcp-keepalive) compiled
+  in a multi-stage build on latest-fips-builder.
 url: "https://nginx.org"
 reverse_dependency_tests: false
 tags:

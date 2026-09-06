@@ -15,7 +15,7 @@ FROM ${NGINX_FIPS_RUNTIME} AS nginx-fips-runtime
 # Seed NEWROOT from the FIPS runtime, then install only entrypoint/setup
 # RPMs (bash, sed, grep, gawk, findutils, openssl, nginx-core). Weak deps
 # and the compiler stay out of this transaction.
-COPY --from=nginx-fips-runtime / ${NEWROOT}/
+COPY --from=fips-runtime / ${NEWROOT}/
 {{ install_newroot() }}
 
 # Toolchain in the *builder* root only. Hummingbird dnf.conf may default

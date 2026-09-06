@@ -1,13 +1,20 @@
 ---
-main_package: bash
+main_package: redhat-release
 repository: ubi9
+# Pin distro so ci_hummingbird_distros() generates images/ubi9/ubi9/*
+# instead of falling back to default_distros: [hummingbird] in
+# builders/variables.yml (which pulled hummingbird.repo).
+distros:
+  - ubi9
+# default_distros:
+#   - ubi9
 # distro-tracking base image, no upstream version branches
 stream: "latest"
-summary: "Minimal hummingbird core runtime base image (glibc + bash)"
+summary: "Minimal UBI 9 base image (glibc + bash)"
 description: >-
-  Minimal base image built with the hummingbird core runtime: glibc, bash,
+  Minimal base image built from UBI 9 (RHEL 9) BaseOS/AppStream: glibc, bash,
   and coreutils-single. Suitable as a foundation for applications that do
-  not ship their own runtime. Includes the hummingbird release package for
+  not ship their own runtime. Includes the redhat-release package for
   repository identity.
 url: "https://github.com/technobureau/docker-builds"
 reverse_dependency_tests: false
@@ -15,9 +22,17 @@ variants:
   - default
 tags:
   - value: latest
+  - value: '{{ package_major_minor_version("redhat-release") }}'
+    label: org.opencontainers.image.version
 rpm_packages:
   all:
     - glibc
     - bash
     - coreutils-single
-    - hummingbird-release
+    - redhat-release
+    # Required by STIG (package_crypto-policies_installed,
+    # configure_crypto_policy); install sets the DEFAULT system crypto policy.
+    - crypto-policies
+    - openssl-libs
+    - openssl-fips-provider
+    - openssl-fips-provider-so

@@ -1,0 +1,72 @@
+# Per-image overrides for ubi10, deep-merged over builders/variables.yml.
+# UBI 10 BaseOS/AppStream does not provide the Hummingbird FIPS config
+# packages (crypto-policies-config-fips, openssl-config-fips) listed in
+# shared default_rpm_packages.all, so clear that list for this image.
+# Hummingbird images (curl, nginx, ...) are unaffected — each builder gets
+# its own merged .hbgen/images/variables.yml.
+oscap:
+  enabled: true
+  # Pinned into the STIG tailored profile as set-value: the check-export
+  # binding for this value does not survive tailoring extends in offline
+  # scans (configure_crypto_policy fails despite correct content).
+  crypto_policy: DEFAULT
+  # CIS and STIG both enforced; environmentally inapplicable rules are
+  # excluded below with reasons (container rootfs has no partitions, runtime
+  # mounts, or system services).
+  exclude_rules:
+    # Re-include the shared exclusion: per-image lists replace (not extend)
+    # builders/variables.yml oscap.exclude_rules for this image's hbgen tree.
+    # (ssg-rhel10 has no root_path_all_dirs rule, so it is omitted here.)
+    - id: xccdf_org.ssgproject.content_rule_root_path_no_dot
+      reason: "False positive: environmentvariable58 probe requires /proc which is unavailable in offline chroot scanning"
+    # A container rootfs is a single layer: no partitions exist and mount
+    # options are owned by the container runtime, not image content.
+    - id: xccdf_org.ssgproject.content_rule_partition_for_dev_shm
+      reason: "Not applicable to container images: single-layer rootfs has no partitions"
+    - id: xccdf_org.ssgproject.content_rule_partition_for_home
+      reason: "Not applicable to container images: single-layer rootfs has no partitions"
+    - id: xccdf_org.ssgproject.content_rule_partition_for_tmp
+      reason: "Not applicable to container images: single-layer rootfs has no partitions"
+    - id: xccdf_org.ssgproject.content_rule_partition_for_var
+      reason: "Not applicable to container images: single-layer rootfs has no partitions"
+    - id: xccdf_org.ssgproject.content_rule_partition_for_var_log
+      reason: "Not applicable to container images: single-layer rootfs has no partitions"
+    - id: xccdf_org.ssgproject.content_rule_partition_for_var_log_audit
+      reason: "Not applicable to container images: single-layer rootfs has no partitions"
+    - id: xccdf_org.ssgproject.content_rule_partition_for_var_tmp
+      reason: "Not applicable to container images: single-layer rootfs has no partitions"
+    - id: xccdf_org.ssgproject.content_rule_mount_option_dev_shm_nodev
+      reason: "/dev/shm mount options are enforced by the container runtime, not image content"
+    - id: xccdf_org.ssgproject.content_rule_mount_option_dev_shm_noexec
+      reason: "/dev/shm mount options are enforced by the container runtime, not image content"
+    - id: xccdf_org.ssgproject.content_rule_mount_option_dev_shm_nosuid
+      reason: "/dev/shm mount options are enforced by the container runtime, not image content"
+    # Base image keeps vendor shell defaults (umask 022); login-shell umask
+    # policy is set by derived images.
+    - id: xccdf_org.ssgproject.content_rule_accounts_umask_etc_bashrc
+      reason: "Base image ships vendor /etc/bashrc defaults; umask policy is set by derived images"
+    - id: xccdf_org.ssgproject.content_rule_accounts_umask_etc_profile
+      reason: "Base image ships vendor /etc/profile defaults; umask policy is set by derived images"
+    # SSHD is not installed in this image; crypto policy modules are selected
+    # by derived images that ship TLS/SSH services.
+    - id: xccdf_org.ssgproject.content_rule_configure_custom_crypto_policy_cis
+      reason: "Rule hardens SSHD, which is not installed; crypto policy is selected by derived images"
+    # Container images never self-update (no systemd timers); updates ship
+    # via image rebuilds.
+    - id: xccdf_org.ssgproject.content_rule_dnf-automatic_apply_updates
+      reason: "No background updates in containers; updates ship via image rebuilds"
+    # Hardware NX/XD enforcement lives in BIOS/hypervisor, outside image content.
+    - id: xccdf_org.ssgproject.content_rule_bios_enable_execution_restrictions
+      reason: "BIOS NX/XD setting is enforced by the virtualization host, not image content"
+    # /etc/resolv.conf is injected by the container runtime (podman/docker/
+    # Kubernetes mount it at start); image content cannot provide nameservers.
+    - id: xccdf_org.ssgproject.content_rule_network_configure_name_resolution
+      reason: "resolv.conf is runtime-mounted by the container engine, not image content"
+    # Toolchain limitation: the image is assembled with RPM 6
+    # (hummingbird-builder), which records gpg-pubkey with long key IDs, while
+    # SSG rhel10 OVAL expects short key IDs. The key files ship inside the
+    # image via redhat-release for consumer-side verification.
+    - id: xccdf_org.ssgproject.content_rule_ensure_redhat_gpgkey_installed
+      reason: "RPM 6 records long key IDs, SSG expects short ones; keys ship in redhat-release for consumers"
+default_rpm_packages:
+  all: []

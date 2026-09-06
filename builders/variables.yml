@@ -28,12 +28,6 @@ default_variant_repos:
     - ubi9.repo
   ubi10:
     - ubi10.repo
-# Red Hat FIPS counterpart for every image: hi/<properties.repository>:<tag>
-# Containerfile.j2 renders these — no --build-arg. Override per image in
-# builders/<image>/variables.yml if a stream uses a different tag.
-fips_registry: registry.access.redhat.com/hi
-fips_runtime_tag: latest-fips
-fips_builder_tag: latest-fips-builder
 oscap:
   enabled: true
   # Per-distro SCAP datastreams used by verify-compliance in the builder stage.
@@ -49,9 +43,6 @@ oscap:
       variants:
         - "*"
   exclude_rules:
-    # Harmless if the ID is absent from ssg-hummingbird-ds.xml (oscap warns
-    # "Selector ID ... does not exist ... will be ignored"). CIS/STIG still
-    # pass. Kept for ubi9/ubi10 datastreams where the rule exists.
     - id: xccdf_org.ssgproject.content_rule_root_path_no_dot
       reason: "False positive: environmentvariable58 probe requires /proc which is unavailable in offline chroot scanning"
 registry: ghcr.io/technobureau

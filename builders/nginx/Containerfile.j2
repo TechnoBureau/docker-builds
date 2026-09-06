@@ -1,14 +1,8 @@
-# nginx + third-party dynamic modules, runtime seeded from the FIPS image.
-#
-# gcc/make/git stay in the hummingbird *builder* filesystem only
-# (--installroot=/). They must never land in ${NEWROOT} (chunkah would
-# publish them as rpm/gcc layers and balloon the image past the ~18MiB
-# FIPS runtime).
-#
-#   --build-arg NGINX_FIPS_RUNTIME=registry.access.redhat.com/hi/nginx:latest-fips
+# nginx + third-party dynamic modules. NEWROOT is seeded from the FIPS
+# runtime named in this file (no extra variables.yml / --build-arg).
+# gcc/make/git stay in the builder (--installroot=/).
 
-ARG NGINX_FIPS_RUNTIME=registry.access.redhat.com/hi/nginx:latest-fips
-FROM ${NGINX_FIPS_RUNTIME} AS nginx-fips-runtime
+FROM registry.access.redhat.com/hi/nginx:latest-fips AS fips-runtime
 
 {{ setup_newroot() }}
 

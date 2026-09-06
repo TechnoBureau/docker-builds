@@ -9,7 +9,9 @@ oscap:
   # Pinned into the STIG tailored profile as set-value: the check-export
   # binding for this value does not survive tailoring extends in offline
   # scans (configure_crypto_policy fails despite correct content).
-  crypto_policy: DEFAULT
+  # FIPS by default: content is rewritten to FIPS at build time (see
+  # install_newroot macro); FIPS runtime also needs host fips=1.
+  crypto_policy: FIPS
   # CIS and STIG both enforced; environmentally inapplicable rules are
   # excluded below with reasons (container rootfs has no partitions, runtime
   # mounts, or system services).

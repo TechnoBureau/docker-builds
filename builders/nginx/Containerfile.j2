@@ -18,7 +18,7 @@ RUN set -eux; \
     if command -v dnf >/dev/null 2>&1; then PKGMGR=dnf; \
     elif command -v microdnf >/dev/null 2>&1; then PKGMGR=microdnf; \
     else PKGMGR=yum; fi; \
-    $PKGMGR -y --installroot=/ --setopt=install_weak_deps=0 --skip-unavailable \
+    $PKGMGR -y --installroot=/ --setopt=install_weak_deps=0 \
         install gcc gcc-c++ make git \
         pcre2-devel zlib-devel openssl-devel \
         tar gzip curl; \

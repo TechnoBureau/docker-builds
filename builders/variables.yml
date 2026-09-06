@@ -19,7 +19,7 @@ default_rpm_packages:
 variant_descriptions:
   default: "Standard production image"
 platforms:
-#  - linux/amd64
+  - linux/amd64
   - linux/arm64
 default_variant_repos:
   hummingbird:

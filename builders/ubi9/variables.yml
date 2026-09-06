@@ -9,6 +9,8 @@ oscap:
   # Pinned into the STIG tailored profile as set-value: the check-export
   # binding for this value does not survive tailoring extends in offline
   # scans (configure_crypto_policy fails despite correct content).
+  # NOTE: keep DEFAULT — installed content sets DEFAULT policy; FIPS needs
+  # its own track (FIPS packages + fips-mode setup, unavailable in UBI repos).
   crypto_policy: DEFAULT
   # CIS and STIG both enforced; environmentally inapplicable rules are
   # excluded below with reasons (container rootfs has no partitions, runtime

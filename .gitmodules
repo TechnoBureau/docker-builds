@@ -1,4 +1,3 @@
 [submodule "scripts"]
 	path = scripts
-	branch = arena/01a076a4-docker-build-scripts
 	url = https://github.com/TechnoBureau/docker-build-scripts.git
